@@ -69,7 +69,6 @@ const jackets = {
   'fruit-fridge': {
     size: [210, 297], thickness: 16, color: '#f3f0e9',
     front: quad(31, [425, 240], [578, 333], [448, 757], [160, 566]),
-    spine: quad(31, [391, 219], [132, 544], [160, 566], [425, 240]),
     partial: true,
   },
   'field-notes': {},

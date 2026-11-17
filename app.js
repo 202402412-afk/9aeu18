@@ -222,35 +222,22 @@ function animateBook(start, finish, opening) {
 function renderDetail(project) {
   const jacket = jackets[project.id];
   for (const texture of detail.querySelectorAll('.texture')) textureObserver.unobserve(texture);
-  const format = jacket.size ? `${jacket.size.join(' × ')} ${jacket.unit ?? 'mm'}` : '';
-  detail.innerHTML = `
-    <div class="detail-visual">
-      <div class="detail-stage" role="img" aria-label="${project.title} ${jacket.front ? '프로젝트 표지' : '작업 제목'}">${bookMarkup(project, true)}</div>
-    </div>
-    <article class="detail-copy">
-      <p class="kicker">${labels.get(project.id)} / ${number(projects.length)}　·　${project.category}</p>
-      <h1 id="detail-title" tabindex="-1">${project.title}</h1>
-      ${project.subtitle ? `<p class="subtitle">${project.subtitle}</p>` : ''}
-      <p class="description">${project.description}</p>
-      ${format ? `<p class="format"><span>원본 규격</span> ${format}${jacket.folded ? ' · 3단 접지' : ''}</p>` : ''}
-      ${jacket.partial ? '<p class="art-note">포트폴리오에서 확인되는 부분을 표지에 사용했습니다.</p>' : ''}
-      ${jacket.front ? '' : '<p class="art-note">표지 원본이 준비되면 이 자리에 표시됩니다.</p>'}
-      <a class="jump" href="#project-pages">작업 이미지 보기 <span aria-hidden="true">↓</span></a>
-      <section class="gallery" id="project-pages" aria-labelledby="gallery-title">
-        <h2 id="gallery-title" tabindex="-1">작업 이미지 · ${project.pages.length}장</h2>
-        ${project.pages.map((page, i) => `
-          <figure><a href="${pagePath(page)}" target="_blank" rel="noopener" aria-label="${project.title} 작업 이미지 ${i + 1}, 새 탭에서 크게 보기">
-            <img src="${pagePath(page)}" width="1317" height="1950" alt="${project.title} 포트폴리오 페이지 ${i + 1}" loading="lazy" decoding="async">
-          </a></figure>`).join('')}
-      </section>
-      <footer class="detail-footer"><a href="#works">← 서가로 돌아가기</a></footer>
-    </article>`;
+  const at = projects.indexOf(project);
+  const book = `<div class="detail-stage" role="img" aria-label="${project.title} ${jacket.front ? '프로젝트 표지' : '작업 제목'}">${bookMarkup(project, true)}</div>`;
+  detail.innerHTML = story.markup(project, {
+    label: labels.get(project.id), total: number(projects.length), book, pagePath,
+    prev: projects[(at - 1 + projects.length) % projects.length],
+    next: projects[(at + 1) % projects.length],
+  });
   trackTextures(detail);
-  detail.querySelector('.jump').addEventListener('click', event => follow(event, () => {
-    detail.querySelector('#gallery-title').focus({ preventScroll: true });
-    detail.querySelector('.gallery').scrollIntoView({ behavior: reducedMotion.matches ? 'instant' : 'smooth' });
+  story.activate(detail);
+  detail.querySelector('.jump')?.addEventListener('click', event => follow(event, () => {
+    detail.querySelector('.story').scrollIntoView({ behavior: reducedMotion.matches ? 'instant' : 'smooth' });
   }));
-  detail.querySelector('.detail-footer a').addEventListener('click', event => follow(event, returnToShelf));
+  detail.querySelector('.pager-home').addEventListener('click', event => follow(event, returnToShelf));
+  for (const link of detail.querySelectorAll('.pager a[data-id]')) {
+    link.addEventListener('click', event => follow(event, () => openProject(projects.find(p => p.id === link.dataset.id), false)));
+  }
 }
 
 function showProject(project, animate) {
